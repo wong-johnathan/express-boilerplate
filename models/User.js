@@ -4,7 +4,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const jwtSecret = config.jwtSecret;
-const AccessLevel = require("./AccessLevel");
 
 const userSchema = new mongoose.Schema(
   {
@@ -40,13 +39,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    accessLevel: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: "accessLevels",
-      },
-    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "users",
@@ -67,19 +59,12 @@ const userSchema = new mongoose.Schema(
       type: Date,
       required: false,
     },
-    organizationId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "organization",
-      required: true,
-    },
   },
   { timestamps: true }
 );
 
 userSchema.methods.getPublicProfile = async function () {
   const { password, tokens, updatePassword, updatedAt, createdAt, ...userObject } = this.toObject();
-  const accessLevel = await AccessLevel.find({ _id: { $in: userObject.accessLevel } }, "-__v");
-  userObject.accessLevel = accessLevel.map((access) => access.id);
   return userObject;
 };
 
